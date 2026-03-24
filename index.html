@@ -1,38 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Yearbook Translations</title>
+    <title>Skaga Yearbook Translations</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
-<body>
 
-    <div class="container">
-        <h1>📖 Yearbook Translations</h1>
-        <p>Select your language:</p>
+<script>
+    let pdfDoc = null;
+    let pageNum = 1;
 
-        <div class="language-list">
-            <button onclick="loadPDF('pdfs/english.pdf')">English</button>
-            <button onclick="loadPDF('pdfs/spanish.pdf')">Español</button>
-            <button onclick="loadPDF('pdfs/french.pdf')">Français</button>
-            <button onclick="loadPDF('pdfs/german.pdf')">Deutsch</button>
-        </div>
+    pdfjsLib.getDocument("yearbook_en.pdf").promise.then(pdf => {
+        pdfDoc = pdf;
+        renderPage(pageNum);
+    });
 
-        <div class="viewer">
-            <iframe id="pdfViewer" src="" frameborder="0"></iframe>
-        </div>
+    function renderPage(num) {
+        pdfDoc.getPage(num).then(page => {
+            const canvas = document.getElementById("pdf-canvas");
+            const ctx = canvas.getContext("2d");
 
-        <div class="download">
-            <a id="downloadLink" href="#" download>Download PDF</a>
-        </div>
-    </div>
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
 
-    <script>
-        function loadPDF(path) {
-            document.getElementById("pdfViewer").src = path;
-            document.getElementById("downloadLink").href = path;
+            page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            });
+
+            document.getElementById("page-num").textContent = num;
+        });
+    }
+
+    function nextPage() {
+        if (pageNum < pdfDoc.numPages) {
+            pageNum++;
+            renderPage(pageNum);
         }
-    </script>
+    }
 
+    function prevPage() {
+        if (pageNum > 1) {
+            pageNum--;
+            renderPage(pageNum);
+        }
+    }
+</script>
+
+<body>
+    <h1>Skaga Yearbook Translations</h1>
+    <div id="tag-bar">
+        <button class="tag" data-tag="english">English</button>
+        <button class="tag" data-tag="german">German</button>
+        <button class="tag" data-tag="italian">Italian</button>
+        <button class="tag" data-tag="french">French</button>
+    </div>
+    <canvas id="pdf-canvas"></canvas>
+
+    <div id="controls">
+        <button onclick="prevPage()">Prev</button>
+        <span id="page-num"></span>
+        <button onclick="nextPage()">Next</button>
+    </div>
 </body>
+
 </html>
