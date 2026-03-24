@@ -21,28 +21,36 @@
     </header>
 
     <main>
-        <div id="tag-bar">
-            <button class="tag selected" data-lang="en">English</button>
-            <button class="tag" data-lang="de">Deutsch</button>
-            <button class="tag" data-lang="it">Italiano</button>
-            <button class="tag" data-lang="fr">Français</button>
+        <div id="toolbar">
+            <div id="tag-bar">
+                <button class="tag selected" data-lang="en">English</button>
+                <button class="tag" data-lang="de">Deutsch</button>
+                <button class="tag" data-lang="it">Italiano</button>
+                <button class="tag" data-lang="fr">Français</button>
+            </div>
+
+            <div id="toolbar-right">
+                <span id="page-info">
+                    <span id="page-num">—</span>
+                    <span class="page-sep">/</span>
+                    <span id="page-total">—</span>
+                </span>
+                <button id="download-btn" title="Download PDF">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download
+                </button>
+            </div>
         </div>
 
         <div id="viewer-wrap">
             <div id="loading-state">
                 <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
             </div>
-            <canvas id="pdf-canvas"></canvas>
-        </div>
-
-        <div id="controls">
-            <button class="ctrl-btn" id="btn-prev" onclick="prevPage()" disabled>&#8592; Prev</button>
-            <span id="page-info">
-                <span id="page-num">—</span>
-                <span class="page-sep">/</span>
-                <span id="page-total">—</span>
-            </span>
-            <button class="ctrl-btn" id="btn-next" onclick="nextPage()" disabled>Next &#8594;</button>
+            <div id="pages-container"></div>
         </div>
     </main>
 
@@ -51,117 +59,141 @@
     </footer>
 
     <script>
-        // PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc =
             'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let pdfDoc = null;
-        let pageNum = 1;
-        let currentLang = 'en';
-        let rendering = false;
-
-        // Map language codes to PDF filenames in the pdfs/ folder
-        // Only the English PDF exists in this repository, so all languages fall back to it.
         const pdfMap = {
             en: 'pdfs/yearbook_en.pdf',
-            de: 'pdfs/yearbook_en.pdf',
-            it: 'pdfs/yearbook_en.pdf',
-            fr: 'pdfs/yearbook_en.pdf',
+            de: 'pdfs/yearbook_de.pdf',
+            it: 'pdfs/yearbook_it.pdf',
+            fr: 'pdfs/yearbook_fr.pdf',
         };
 
-        function setLoading(show) {
-            document.getElementById('loading-state').style.display = show ? 'flex' : 'none';
-            document.getElementById('pdf-canvas').style.opacity = show ? '0' : '1';
-        }
+        let pdfDoc = null;
+        let currentLang = 'en';
+        let renderTasks = [];
+        let pageObserver = null;
 
-        function updateControls() {
-            document.getElementById('btn-prev').disabled = pageNum <= 1;
-            document.getElementById('btn-next').disabled = !pdfDoc || pageNum >= pdfDoc.numPages;
-            document.getElementById('page-num').textContent = pageNum;
-            document.getElementById('page-total').textContent = pdfDoc ? pdfDoc.numPages : '—';
-        }
+        const container   = document.getElementById('pages-container');
+        const viewerWrap  = document.getElementById('viewer-wrap');
+        const loadingEl   = document.getElementById('loading-state');
+        const pageNumEl   = document.getElementById('page-num');
+        const pageTotalEl = document.getElementById('page-total');
 
-        function renderPage(num) {
-            if (!pdfDoc || rendering) return;
-            rendering = true;
-            setLoading(true);
+        // Track which page is most visible in the scroll area
+        function setupObserver() {
+            if (pageObserver) pageObserver.disconnect();
 
-            pdfDoc.getPage(num).then(page => {
-                const canvas = document.getElementById('pdf-canvas');
-                const ctx = canvas.getContext('2d');
-
-                // Scale to fit the viewer width
-                const viewerWrap = document.getElementById('viewer-wrap');
-                const maxWidth = viewerWrap.clientWidth - 40;
-                const baseViewport = page.getViewport({ scale: 1 });
-                const scale = Math.min(maxWidth / baseViewport.width, 1.8);
-                const viewport = page.getViewport({ scale });
-
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-                    rendering = false;
-                    setLoading(false);
-                    updateControls();
+            pageObserver = new IntersectionObserver(entries => {
+                let best = null, bestRatio = 0;
+                entries.forEach(e => {
+                    if (e.intersectionRatio > bestRatio) {
+                        bestRatio = e.intersectionRatio;
+                        best = e.target;
+                    }
                 });
+                if (best) pageNumEl.textContent = best.dataset.page;
+            }, {
+                root: viewerWrap,
+                threshold: Array.from({ length: 21 }, (_, i) => i * 0.05)
+            });
+
+            container.querySelectorAll('.page-wrapper').forEach(el => {
+                pageObserver.observe(el);
             });
         }
 
-        function loadPDF(lang) {
-            const path = pdfMap[lang];
-            setLoading(true);
-            pageNum = 1;
-            pdfDoc = null;
-            updateControls();
+        // Render a single page into its canvas
+        async function renderPage(page, canvas) {
+            const maxWidth = viewerWrap.clientWidth - 48;
+            const base = page.getViewport({ scale: 1 });
+            const scale = Math.min(maxWidth / base.width, 2.0);
+            const vp = page.getViewport({ scale });
 
-            pdfjsLib.getDocument(path).promise.then(pdf => {
-                pdfDoc = pdf;
-                renderPage(pageNum);
-            }).catch(err => {
-                setLoading(false);
-                document.getElementById('loading-state').innerHTML =
-                    `<span style="color:#c0392b;">Could not load PDF.<br><small>${path}</small></span>`;
-                document.getElementById('loading-state').style.display = 'flex';
+            canvas.width  = vp.width;
+            canvas.height = vp.height;
+
+            const task = page.render({ canvasContext: canvas.getContext('2d'), viewport: vp });
+            renderTasks.push(task);
+            await task.promise;
+        }
+
+        // Load and render all pages
+        async function loadPDF(lang) {
+            renderTasks.forEach(t => { try { t.cancel(); } catch (_) {} });
+            renderTasks = [];
+
+            loadingEl.innerHTML = '<span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>';
+            loadingEl.style.display = 'flex';
+            container.innerHTML = '';
+            pageNumEl.textContent   = '—';
+            pageTotalEl.textContent = '—';
+
+            try {
+                pdfDoc = await pdfjsLib.getDocument(pdfMap[lang]).promise;
+                pageTotalEl.textContent = pdfDoc.numPages;
+                loadingEl.style.display = 'none';
+
+                // Create all wrappers first so the observer can be set up
+                for (let i = 1; i <= pdfDoc.numPages; i++) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'page-wrapper';
+                    wrapper.dataset.page = i;
+                    const canvas = document.createElement('canvas');
+                    wrapper.appendChild(canvas);
+                    container.appendChild(wrapper);
+                }
+
+                setupObserver();
+                pageNumEl.textContent = '1';
+
+                // Render pages sequentially to keep memory usage low
+                for (let i = 1; i <= pdfDoc.numPages; i++) {
+                    const page   = await pdfDoc.getPage(i);
+                    const canvas = container.children[i - 1].querySelector('canvas');
+                    await renderPage(page, canvas);
+                }
+
+            } catch (err) {
+                loadingEl.innerHTML = `<span style="color:#c0392b;">Could not load PDF.<br><small>${pdfMap[lang]}</small></span>`;
+                loadingEl.style.display = 'flex';
                 console.error(err);
-            });
-        }
-
-        function nextPage() {
-            if (pdfDoc && pageNum < pdfDoc.numPages) {
-                pageNum++;
-                renderPage(pageNum);
             }
         }
 
-        function prevPage() {
-            if (pageNum > 1) {
-                pageNum--;
-                renderPage(pageNum);
-            }
-        }
+        // Download current PDF
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.href = pdfMap[currentLang];
+            a.download = `skaga_yearbook_${currentLang}.pdf`;
+            a.click();
+        });
 
-        // Language tag buttons
+        // Language switcher
         document.querySelectorAll('.tag').forEach(btn => {
             btn.addEventListener('click', () => {
                 const lang = btn.dataset.lang;
                 if (lang === currentLang) return;
                 currentLang = lang;
-
                 document.querySelectorAll('.tag').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-
                 loadPDF(lang);
             });
         });
 
         // Keyboard navigation
         document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowRight') nextPage();
-            if (e.key === 'ArrowLeft') prevPage();
+            const cur = parseInt(pageNumEl.textContent) || 1;
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                const next = container.querySelector(`.page-wrapper[data-page="${cur + 1}"]`);
+                if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                const prev = container.querySelector(`.page-wrapper[data-page="${cur - 1}"]`);
+                if (prev) prev.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
 
-        // Initial load
         loadPDF('en');
     </script>
 </body>
