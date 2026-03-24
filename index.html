@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Yearbook Translations</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>📖 Yearbook Translations</h1>
+        <p>Select your language:</p>
+
+        <div class="language-list">
+            <button onclick="loadPDF('pdfs/english.pdf')">English</button>
+            <button onclick="loadPDF('pdfs/spanish.pdf')">Español</button>
+            <button onclick="loadPDF('pdfs/french.pdf')">Français</button>
+            <button onclick="loadPDF('pdfs/german.pdf')">Deutsch</button>
+        </div>
+
+        <div class="viewer">
+            <iframe id="pdfViewer" src="" frameborder="0"></iframe>
+        </div>
+
+        <div class="download">
+            <a id="downloadLink" href="#" download>Download PDF</a>
+        </div>
+    </div>
+
+    <script>
+        function loadPDF(path) {
+            document.getElementById("pdfViewer").src = path;
+            document.getElementById("downloadLink").href = path;
+        }
+    </script>
+
+</body>
+</html>
