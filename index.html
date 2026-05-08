@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skaga Yearbook</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:wght@300;400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -24,9 +26,9 @@
         <div id="toolbar">
             <div id="tag-bar">
                 <button class="tag selected" data-lang="en">English</button>
+                <button class="tag" data-lang="no">Norsk</button>
                 <button class="tag" data-lang="de">Deutsch</button>
-                <button class="tag" data-lang="it">Italiano</button>
-                <button class="tag" data-lang="fr">Français</button>
+                <button class="tag" data-lang="nl">Nederlands</button>
             </div>
 
             <div id="toolbar-right">
@@ -36,10 +38,11 @@
                     <span id="page-total">—</span>
                 </span>
                 <button id="download-btn" title="Download PDF">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
                     Download
                 </button>
@@ -63,10 +66,10 @@
             'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         const pdfMap = {
-            en: 'pdfs/yearbook_en.pdf',
-            de: 'pdfs/yearbook_de.pdf',
-            it: 'pdfs/yearbook_it.pdf',
-            fr: 'pdfs/yearbook_fr.pdf',
+            en: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_en.pdf',
+            no: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_no.pdf',
+            de: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_de.pdf',
+            nl: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_nl.pdf',
         };
 
         let pdfDoc = null;
@@ -74,10 +77,10 @@
         let renderTasks = [];
         let pageObserver = null;
 
-        const container   = document.getElementById('pages-container');
-        const viewerWrap  = document.getElementById('viewer-wrap');
-        const loadingEl   = document.getElementById('loading-state');
-        const pageNumEl   = document.getElementById('page-num');
+        const container = document.getElementById('pages-container');
+        const viewerWrap = document.getElementById('viewer-wrap');
+        const loadingEl = document.getElementById('loading-state');
+        const pageNumEl = document.getElementById('page-num');
         const pageTotalEl = document.getElementById('page-total');
 
         // Track which page is most visible in the scroll area
@@ -110,7 +113,7 @@
             const scale = Math.min(maxWidth / base.width, 2.0);
             const vp = page.getViewport({ scale });
 
-            canvas.width  = vp.width;
+            canvas.width = vp.width;
             canvas.height = vp.height;
 
             const task = page.render({ canvasContext: canvas.getContext('2d'), viewport: vp });
@@ -120,13 +123,13 @@
 
         // Load and render all pages
         async function loadPDF(lang) {
-            renderTasks.forEach(t => { try { t.cancel(); } catch (_) {} });
+            renderTasks.forEach(t => { try { t.cancel(); } catch (_) { } });
             renderTasks = [];
 
             loadingEl.innerHTML = '<span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>';
             loadingEl.style.display = 'flex';
             container.innerHTML = '';
-            pageNumEl.textContent   = '—';
+            pageNumEl.textContent = '—';
             pageTotalEl.textContent = '—';
 
             try {
@@ -149,7 +152,7 @@
 
                 // Render pages sequentially to keep memory usage low
                 for (let i = 1; i <= pdfDoc.numPages; i++) {
-                    const page   = await pdfDoc.getPage(i);
+                    const page = await pdfDoc.getPage(i);
                     const canvas = container.children[i - 1].querySelector('canvas');
                     await renderPage(page, canvas);
                 }
