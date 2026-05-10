@@ -22,7 +22,6 @@
     </header>
 
     <main>
-<<<<<<< HEAD
         <p class="intro">Select a language edition to download the 2026 annual yearbook.</p>
 
         <div id="download-grid">
@@ -35,28 +34,6 @@
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                         <polyline points="7 10 12 15 17 10"/>
                         <line x1="12" y1="15" x2="12" y2="3"/>
-=======
-        <div id="toolbar">
-            <div id="tag-bar">
-                <button class="tag selected" data-lang="en">English</button>
-                <button class="tag" data-lang="no">Norsk</button>
-                <button class="tag" data-lang="de">Deutsch</button>
-                <button class="tag" data-lang="nl">Nederlands</button>
-            </div>
-
-            <div id="toolbar-right">
-                <span id="page-info">
-                    <span id="page-num">—</span>
-                    <span class="page-sep">/</span>
-                    <span id="page-total">—</span>
-                </span>
-                <button id="download-btn" title="Download PDF">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
->>>>>>> 8732a1344751f5f370f0d785b476da17061e8c8c
                     </svg>
                     Download PDF
                 </span>
@@ -109,148 +86,6 @@
     <footer>
         <span>Skaga &mdash; <em>Annual Yearbook</em></span>
     </footer>
-<<<<<<< HEAD
-=======
-
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        const pdfMap = {
-            en: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_en.pdf',
-            no: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_no.pdf',
-            de: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_de.pdf',
-            nl: 'https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_nl.pdf',
-        };
-
-        let pdfDoc = null;
-        let currentLang = 'en';
-        let renderTasks = [];
-        let pageObserver = null;
-
-        const container = document.getElementById('pages-container');
-        const viewerWrap = document.getElementById('viewer-wrap');
-        const loadingEl = document.getElementById('loading-state');
-        const pageNumEl = document.getElementById('page-num');
-        const pageTotalEl = document.getElementById('page-total');
-
-        // Track which page is most visible in the scroll area
-        function setupObserver() {
-            if (pageObserver) pageObserver.disconnect();
-
-            pageObserver = new IntersectionObserver(entries => {
-                let best = null, bestRatio = 0;
-                entries.forEach(e => {
-                    if (e.intersectionRatio > bestRatio) {
-                        bestRatio = e.intersectionRatio;
-                        best = e.target;
-                    }
-                });
-                if (best) pageNumEl.textContent = best.dataset.page;
-            }, {
-                root: viewerWrap,
-                threshold: Array.from({ length: 21 }, (_, i) => i * 0.05)
-            });
-
-            container.querySelectorAll('.page-wrapper').forEach(el => {
-                pageObserver.observe(el);
-            });
-        }
-
-        // Render a single page into its canvas
-        async function renderPage(page, canvas) {
-            const maxWidth = viewerWrap.clientWidth - 48;
-            const base = page.getViewport({ scale: 1 });
-            const scale = Math.min(maxWidth / base.width, 2.0);
-            const vp = page.getViewport({ scale });
-
-            canvas.width = vp.width;
-            canvas.height = vp.height;
-
-            const task = page.render({ canvasContext: canvas.getContext('2d'), viewport: vp });
-            renderTasks.push(task);
-            await task.promise;
-        }
-
-        // Load and render all pages
-        async function loadPDF(lang) {
-            renderTasks.forEach(t => { try { t.cancel(); } catch (_) { } });
-            renderTasks = [];
-
-            loadingEl.innerHTML = '<span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>';
-            loadingEl.style.display = 'flex';
-            container.innerHTML = '';
-            pageNumEl.textContent = '—';
-            pageTotalEl.textContent = '—';
-
-            try {
-                pdfDoc = await pdfjsLib.getDocument(pdfMap[lang]).promise;
-                pageTotalEl.textContent = pdfDoc.numPages;
-                loadingEl.style.display = 'none';
-
-                // Create all wrappers first so the observer can be set up
-                for (let i = 1; i <= pdfDoc.numPages; i++) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'page-wrapper';
-                    wrapper.dataset.page = i;
-                    const canvas = document.createElement('canvas');
-                    wrapper.appendChild(canvas);
-                    container.appendChild(wrapper);
-                }
-
-                setupObserver();
-                pageNumEl.textContent = '1';
-
-                // Render pages sequentially to keep memory usage low
-                for (let i = 1; i <= pdfDoc.numPages; i++) {
-                    const page = await pdfDoc.getPage(i);
-                    const canvas = container.children[i - 1].querySelector('canvas');
-                    await renderPage(page, canvas);
-                }
-
-            } catch (err) {
-                loadingEl.innerHTML = `<span style="color:#c0392b;">Could not load PDF.<br><small>${pdfMap[lang]}</small></span>`;
-                loadingEl.style.display = 'flex';
-                console.error(err);
-            }
-        }
-
-        // Download current PDF
-        document.getElementById('download-btn').addEventListener('click', () => {
-            const a = document.createElement('a');
-            a.href = pdfMap[currentLang];
-            a.download = `skaga_yearbook_${currentLang}.pdf`;
-            a.click();
-        });
-
-        // Language switcher
-        document.querySelectorAll('.tag').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const lang = btn.dataset.lang;
-                if (lang === currentLang) return;
-                currentLang = lang;
-                document.querySelectorAll('.tag').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                loadPDF(lang);
-            });
-        });
-
-        // Keyboard navigation
-        document.addEventListener('keydown', e => {
-            const cur = parseInt(pageNumEl.textContent) || 1;
-            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                const next = container.querySelector(`.page-wrapper[data-page="${cur + 1}"]`);
-                if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                const prev = container.querySelector(`.page-wrapper[data-page="${cur - 1}"]`);
-                if (prev) prev.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-
-        loadPDF('en');
-    </script>
->>>>>>> 8732a1344751f5f370f0d785b476da17061e8c8c
 </body>
 
 </html>
