@@ -10,7 +10,6 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:wght@300;400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 
 <body>
@@ -23,6 +22,20 @@
     </header>
 
     <main>
+<<<<<<< HEAD
+        <p class="intro">Select a language edition to download the 2026 annual yearbook.</p>
+
+        <div id="download-grid">
+            <a class="download-card" href="https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_en.pdf" download="skaga_yearbook_en.pdf">
+                <span class="lang-label">EN</span>
+                <span class="lang-name">English</span>
+                <span class="dl-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+=======
         <div id="toolbar">
             <div id="tag-bar">
                 <button class="tag selected" data-lang="en">English</button>
@@ -43,23 +56,61 @@
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
+>>>>>>> 8732a1344751f5f370f0d785b476da17061e8c8c
                     </svg>
-                    Download
-                </button>
-            </div>
-        </div>
+                    Download PDF
+                </span>
+            </a>
 
-        <div id="viewer-wrap">
-            <div id="loading-state">
-                <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
-            </div>
-            <div id="pages-container"></div>
+            <a class="download-card" href="https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_no.pdf" download="skaga_yearbook_no.pdf">
+                <span class="lang-label">NO</span>
+                <span class="lang-name">Norsk</span>
+                <span class="dl-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Last ned PDF
+                </span>
+            </a>
+
+            <a class="download-card" href="https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_de.pdf" download="skaga_yearbook_de.pdf">
+                <span class="lang-label">DE</span>
+                <span class="lang-name">Deutsch</span>
+                <span class="dl-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    PDF herunterladen
+                </span>
+            </a>
+
+            <a class="download-card" href="https://github.com/Eldr1tchTech/skaga-yearbook-2026/releases/download/v1.0/yearbook_nl.pdf" download="skaga_yearbook_nl.pdf">
+                <span class="lang-label">NL</span>
+                <span class="lang-name">Nederlands</span>
+                <span class="dl-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    PDF downloaden
+                </span>
+            </a>
         </div>
     </main>
 
     <footer>
         <span>Skaga &mdash; <em>Annual Yearbook</em></span>
     </footer>
+<<<<<<< HEAD
+=======
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -199,6 +250,7 @@
 
         loadPDF('en');
     </script>
+>>>>>>> 8732a1344751f5f370f0d785b476da17061e8c8c
 </body>
 
 </html>
